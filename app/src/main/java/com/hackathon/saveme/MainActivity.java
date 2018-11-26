@@ -1,5 +1,6 @@
 package com.hackathon.saveme;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -18,27 +19,10 @@ public class MainActivity extends AppCompatActivity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                switch (i){
+                Intent newInt = new Intent(MainActivity.this,fallDetection.class);
+                startActivity(newInt);
 
-                    case 0:{
-                        text.setText("Hello");
-                        i++;
-                        i = (i < 3) ? i: 0;
-                        break;
-                    }
-                    case 1:{
-                        text.setText("Champions");
-                        i++;
-                        i = (i < 3) ? i: 0;
-                        break;
-                    }
-                    case 2:{
-                        text.setText("Never look back");
-                        i++;
-                        i = (i < 3) ? i: 0;
-                        break;
-                    }
-                }
+
             }
         });
     }
