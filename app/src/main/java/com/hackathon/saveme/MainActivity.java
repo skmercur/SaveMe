@@ -15,11 +15,21 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         final TextView text = (TextView)findViewById(R.id.textView);
         Button btn = (Button)findViewById(R.id.button);
+        Button map = (Button)findViewById(R.id.mapbtn) ;
 
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent newInt = new Intent(MainActivity.this,fallDetection.class);
+                startActivity(newInt);
+
+
+            }
+        });
+        map.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent newInt = new Intent(MainActivity.this,MApActivity.class);
                 startActivity(newInt);
 
 
