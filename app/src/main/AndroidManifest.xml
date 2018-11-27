@@ -37,7 +37,8 @@
         <activity
             android:name=".MApActivity"
             android:label="@string/title_activity_map" />
-        <activity android:name=".splash">
+        <activity android:name=".splash"
+            android:theme="@style/AppTheme2">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
