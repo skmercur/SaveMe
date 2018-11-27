@@ -24,7 +24,7 @@
             android:textColor="#ffffff"
             android:textSize="25dp"
             android:fontFamily="serif"
-            android:text="We Will Help You Inchallah."
+            android:text="We Will Help You Inchallah.."
             android:layout_gravity="center"
             android:textAlignment="center"/>
     </LinearLayout>
