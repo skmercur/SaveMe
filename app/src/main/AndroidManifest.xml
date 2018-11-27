@@ -18,13 +18,9 @@
         android:roundIcon="@drawable/almonkidh"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+        <activity android:name=".MainActivity"/>
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+
         <activity android:name=".fallDetection" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
