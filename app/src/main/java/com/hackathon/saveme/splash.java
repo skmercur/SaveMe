@@ -20,6 +20,8 @@ public class splash extends AppCompatActivity {
             public void run() {
                 /* Create an Intent that will start the Menu-Activity. */
                 Intent mainIntent = new Intent(splash.this,MainActivity.class);
+                Intent FallDectector = new Intent(splash.this,FallDetectorService.class);
+                startService(FallDectector);
                 splash.this.startActivity(mainIntent);
                 splash.this.finish();
             }

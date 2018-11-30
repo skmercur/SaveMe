@@ -10,6 +10,7 @@
          location permissions for the 'MyLocation' functionality. 
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"></uses-permission>
 
     <application
         android:allowBackup="true"
@@ -18,9 +19,7 @@
         android:roundIcon="@drawable/almonkidh"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity"/>
-
-
+        <activity android:name=".MainActivity" />
         <activity android:name=".fallDetection" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
@@ -37,7 +36,8 @@
         <activity
             android:name=".MApActivity"
             android:label="@string/title_activity_map" />
-        <activity android:name=".splash"
+        <activity
+            android:name=".splash"
             android:theme="@style/AppTheme2">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -45,6 +45,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".FallDetectorService"
+            android:enabled="true"
+            android:exported="true"></service>
     </application>
 
 </manifest>
