@@ -10,7 +10,10 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -22,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -36,8 +40,7 @@ import java.util.Date;
 public class PositionService extends Service {
     LocationManager locationManager;
     LocationListener locationListener;
-    HttpURLConnection httpURLConnection;
-    FileOutputStream stream;
+
     double lon,lat;
     double olon,olat;
     double oldDist;
@@ -48,6 +51,23 @@ public class PositionService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         return super.onStartCommand(intent, flags, startId);
 
+    }
+
+    private void KeepLocation() {
+        new CountDownTimer(5000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                Log.d("Waiting", "for the Counter to finish");
+            }
+
+            @Override
+            public void onFinish() {
+                olat = lat;
+                olon = lon;
+                Log.d("Finished ", "counting");
+
+            }
+        }.start();
     }
 private void distanceCalc() throws IOException {
 
@@ -66,36 +86,38 @@ private void distanceCalc() throws IOException {
     LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     File path = this.getApplicationContext().getFilesDir();
     File file = new File(path,filename);
-if(file.exists()) {
+
 int length = (int)file.length();
 byte[] bytes = new byte[length];
     FileInputStream in = new FileInputStream(file);
     try {
         in.read(bytes);
-    }finally {
         in.close();
+    }finally {
+
     }
     String content = new String(bytes);
     oldDist = Double.parseDouble(content);
 
-}else {
+
     try {
-        stream = new FileOutputStream(file);
-        stream.write(Double.toString(Math.abs(r * c)+oldDist).getBytes());
+        FileWriter writer = new FileWriter(file);
+
+        writer.write(Double.toString(Math.abs(r * c) + oldDist));
+        writer.flush();
+        writer.close();
 
     } catch (FileNotFoundException e) {
         e.printStackTrace();
     } catch (IOException e) {
         e.printStackTrace();
-    } finally {
-        stream.close();
     }
-
-}
     Log.d("Del Lat", Double.toString(delTheta));
     Log.d("Del lon", Double.toString(delLambda));
-Log.d("File Status","File saved Successfully");
+    Log.d("File Status", "File saved Successfully");
 }
+
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -118,23 +140,22 @@ Log.d("File Status","File saved Successfully");
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
+        final double k = 4;
+
 
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
                 /*  if(((location.getSpeed()*3600/1000) > 0) && ((location.getSpeed()*3600/1000)<40)) {*/
-                try {
-                    distanceCalc();
 
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
 //            }
                 lon = location.getLongitude();
                 lat = location.getLatitude();
+                if ((olon == 0) || (olat == 0)) {
+                    olon = lon;
+                    olat = lat;
+                }
 
-
-                Log.d("LOCATION:448",Double.toString(location.getLatitude())+Double.toString(location.getLongitude()));
                 //Here we will send the Location to the server
                 new Thread(new Runnable() {
                     @Override
@@ -154,6 +175,7 @@ is = new BufferedInputStream(url.getInputStream());
                             }
 
                             Log.d("Results : ",result.toString());
+
                         } catch (MalformedURLException e) {
                             e.printStackTrace();
 
@@ -177,8 +199,21 @@ is = new BufferedInputStream(url.getInputStream());
                         }
                     }
                 }).start();
-olat = lat;
-olon = lon;
+
+
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        KeepLocation();
+                        Log.d("Keeping", "Keeping");
+                    }
+                });
+                try {
+                    distanceCalc();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
             }
 

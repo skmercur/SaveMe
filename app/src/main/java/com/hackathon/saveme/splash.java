@@ -22,8 +22,10 @@ public class splash extends AppCompatActivity {
                 Intent mainIntent = new Intent(splash.this,MainActivity.class);
                 Intent FallDectector = new Intent(splash.this,FallDetectorService.class);
                 Intent PositionSer = new Intent(splash.this,PositionService.class);
+                Intent BPMSer = new Intent(splash.this, BPMSimulator.class);
                 startService(FallDectector);
                 startService(PositionSer);
+                startService(BPMSer);
                 splash.this.startActivity(mainIntent);
                 splash.this.finish();
             }
