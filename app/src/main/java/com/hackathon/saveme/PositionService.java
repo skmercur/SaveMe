@@ -15,9 +15,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -28,8 +25,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -55,6 +50,7 @@ public class PositionService extends Service {
 
     }
 private void distanceCalc() throws IOException {
+
         double r = 6371e3;
         double theta1 = Math.toRadians(olat);
         double theta2 = Math.toRadians(lat);
@@ -65,7 +61,9 @@ private void distanceCalc() throws IOException {
         Date ca = Calendar.getInstance().getTime();
     SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
     String filename = df.format(ca);
-
+    Intent intent = new Intent("DistanceWalked");
+    intent.putExtra("distance", Double.toString(Math.abs(r * c) + oldDist));
+    LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     File path = this.getApplicationContext().getFilesDir();
     File file = new File(path,filename);
 if(file.exists()) {
@@ -84,9 +82,7 @@ byte[] bytes = new byte[length];
     try {
         stream = new FileOutputStream(file);
         stream.write(Double.toString(Math.abs(r * c)+oldDist).getBytes());
-        Intent intent = new Intent("DistanceWalked");
-        intent.putExtra("distance",Double.toString(Math.abs(r * c)+oldDist));
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
     } catch (FileNotFoundException e) {
         e.printStackTrace();
     } catch (IOException e) {
@@ -96,8 +92,9 @@ byte[] bytes = new byte[length];
     }
 
 }
+    Log.d("Del Lat", Double.toString(delTheta));
+    Log.d("Del lon", Double.toString(delLambda));
 Log.d("File Status","File saved Successfully");
-oldDist = 0;
 }
     @Override
     public void onCreate() {
@@ -125,13 +122,14 @@ oldDist = 0;
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                if(((location.getSpeed()*3600/1000) > 0) && ((location.getSpeed()*3600/1000)<40)) {
-                    try {
-                        distanceCalc();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                /*  if(((location.getSpeed()*3600/1000) > 0) && ((location.getSpeed()*3600/1000)<40)) {*/
+                try {
+                    distanceCalc();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
+//            }
                 lon = location.getLongitude();
                 lat = location.getLatitude();
 
@@ -199,7 +197,7 @@ olon = lon;
 
             }
         };
-        locationManager.requestLocationUpdates(bestProvider,2*60*1000,10,locationListener);
+        locationManager.requestLocationUpdates(bestProvider, 1000, 0, locationListener);
     }
 
     @Override
