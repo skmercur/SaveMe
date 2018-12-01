@@ -12,6 +12,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -20,20 +21,31 @@ import org.json.JSONObject;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 public class PositionService extends Service {
     LocationManager locationManager;
     LocationListener locationListener;
     HttpURLConnection httpURLConnection;
+    FileOutputStream stream;
     double lon,lat;
+    double olon,olat;
+    double oldDist;
     public PositionService() {
     }
 
@@ -42,7 +54,51 @@ public class PositionService extends Service {
         return super.onStartCommand(intent, flags, startId);
 
     }
+private void distanceCalc() throws IOException {
+        double r = 6371e3;
+        double theta1 = Math.toRadians(olat);
+        double theta2 = Math.toRadians(lat);
+        double delTheta = Math.toRadians(lat-olat);
+        double delLambda = Math.toRadians(lon- olon);
+        double a = Math.sin(delTheta/2)*Math.sin(delTheta/2)+Math.cos(theta1)*Math.cos(theta2)*Math.sin(delLambda/2)*Math.sin(delLambda/2);
+        double c = 2*Math.atan2(Math.sqrt(a),Math.sqrt((1-a)));
+        Date ca = Calendar.getInstance().getTime();
+    SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+    String filename = df.format(ca);
 
+    File path = this.getApplicationContext().getFilesDir();
+    File file = new File(path,filename);
+if(file.exists()) {
+int length = (int)file.length();
+byte[] bytes = new byte[length];
+    FileInputStream in = new FileInputStream(file);
+    try {
+        in.read(bytes);
+    }finally {
+        in.close();
+    }
+    String content = new String(bytes);
+    oldDist = Double.parseDouble(content);
+
+}else {
+    try {
+        stream = new FileOutputStream(file);
+        stream.write(Double.toString(Math.abs(r * c)+oldDist).getBytes());
+        Intent intent = new Intent("DistanceWalked");
+        intent.putExtra("distance",Double.toString(Math.abs(r * c)+oldDist));
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    } catch (FileNotFoundException e) {
+        e.printStackTrace();
+    } catch (IOException e) {
+        e.printStackTrace();
+    } finally {
+        stream.close();
+    }
+
+}
+Log.d("File Status","File saved Successfully");
+oldDist = 0;
+}
     @Override
     public void onCreate() {
         super.onCreate();
@@ -69,6 +125,13 @@ public class PositionService extends Service {
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
+                if(((location.getSpeed()*3600/1000) > 0) && ((location.getSpeed()*3600/1000)<40)) {
+                    try {
+                        distanceCalc();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
                 lon = location.getLongitude();
                 lat = location.getLatitude();
 
@@ -116,7 +179,8 @@ is = new BufferedInputStream(url.getInputStream());
                         }
                     }
                 }).start();
-
+olat = lat;
+olon = lon;
 
             }
 
