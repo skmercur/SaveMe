@@ -29,6 +29,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -78,9 +80,10 @@ private void distanceCalc() throws IOException {
         double delLambda = Math.toRadians(lon- olon);
         double a = Math.sin(delTheta/2)*Math.sin(delTheta/2)+Math.cos(theta1)*Math.cos(theta2)*Math.sin(delLambda/2)*Math.sin(delLambda/2);
         double c = 2*Math.atan2(Math.sqrt(a),Math.sqrt((1-a)));
-        Date ca = Calendar.getInstance().getTime();
+    Calendar ca = Calendar.getInstance();
+    ca.add(Calendar.DATE, 0);
     SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
-    String filename = df.format(ca);
+    String filename = df.format(ca.getTime());
     Intent intent = new Intent("DistanceWalked");
     intent.putExtra("distance", Double.toString(Math.abs(r * c) + oldDist));
     LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
@@ -89,22 +92,23 @@ private void distanceCalc() throws IOException {
 
 int length = (int)file.length();
 byte[] bytes = new byte[length];
-    FileInputStream in = new FileInputStream(file);
-    try {
+    if (file.exists()) {
+        FileInputStream in = new FileInputStream(file);
+
         in.read(bytes);
-
-    }finally {
         in.close();
+        String content = new String(bytes);
+        oldDist = Double.parseDouble(content);
+    } else {
+        oldDist = 0;
     }
-    String content = new String(bytes);
-    oldDist = Double.parseDouble(content);
-
 
     try {
-        FileWriter writer = new FileWriter(file);
+        OutputStream os = new FileOutputStream(file);
+        OutputStreamWriter writer = new OutputStreamWriter(os);
+
 
         writer.write(Double.toString(Math.abs(r * c) + oldDist));
-        writer.flush();
         writer.close();
 
     } catch (FileNotFoundException e) {

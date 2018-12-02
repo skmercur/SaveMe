@@ -77,7 +77,7 @@ TextView distanceText;
         graphView.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.NONE);
         graphView.getViewport().setXAxisBoundsManual(true);
         graphView.getViewport().setMinX(0);
-        graphView.getViewport().setMaxX(8);
+        graphView.getViewport().setMaxX(6);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(DistanceReciver,new IntentFilter("DistanceWalked"));
         LocalBroadcastManager.getInstance(this).registerReceiver(BPMrecviver, new IntentFilter("BPM"));
@@ -88,7 +88,7 @@ TextView distanceText;
     private void distanceDataReader() throws IOException {
 
 
-        for (int i = -3; i < 4; i++) {
+        for (int i = -6; i <= 0; i++) {
             Calendar ca = Calendar.getInstance();
             ca.add(Calendar.DATE, i);
             SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
