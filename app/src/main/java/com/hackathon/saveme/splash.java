@@ -5,30 +5,55 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 
+import java.io.File;
+
 public class splash extends AppCompatActivity {
 
     /** Duration of wait **/
     private final int SPLASH_DISPLAY_LENGTH = 5000;
 
+    private void CheckFirstTime() {
+        File path = getFilesDir();
+        File file = new File(path, "userdata");
+        if (file.exists()) {
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    /* Create an Intent that will start the Menu-Activity. */
+                    Intent mainIntent = new Intent(splash.this, MainActivity.class);
+                    Intent FallDectector = new Intent(splash.this, FallDetectorService.class);
+                    Intent PositionSer = new Intent(splash.this, PositionService.class);
+                    Intent BPMSer = new Intent(splash.this, BPMSimulator.class);
+                    startService(FallDectector);
+                    startService(PositionSer);
+                    startService(BPMSer);
+                    splash.this.startActivity(mainIntent);
+                    splash.this.finish();
+                }
+            }, SPLASH_DISPLAY_LENGTH);
+        } else {
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+
+                    Intent mainIntent = new Intent(splash.this, userData.class);
+                    Intent FallDectector = new Intent(splash.this, FallDetectorService.class);
+                    Intent PositionSer = new Intent(splash.this, PositionService.class);
+                    Intent BPMSer = new Intent(splash.this, BPMSimulator.class);
+                    startService(FallDectector);
+                    startService(PositionSer);
+                    startService(BPMSer);
+                    splash.this.startActivity(mainIntent);
+                    splash.this.finish();
+                }
+            }, SPLASH_DISPLAY_LENGTH);
+        }
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+        CheckFirstTime();
 
-        new Handler().postDelayed(new Runnable(){
-            @Override
-            public void run() {
-                /* Create an Intent that will start the Menu-Activity. */
-                Intent mainIntent = new Intent(splash.this,MainActivity.class);
-                Intent FallDectector = new Intent(splash.this,FallDetectorService.class);
-                Intent PositionSer = new Intent(splash.this,PositionService.class);
-                Intent BPMSer = new Intent(splash.this, BPMSimulator.class);
-                startService(FallDectector);
-                startService(PositionSer);
-                startService(BPMSer);
-                splash.this.startActivity(mainIntent);
-                splash.this.finish();
-            }
-        }, SPLASH_DISPLAY_LENGTH);
     }
 }
