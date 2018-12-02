@@ -50,6 +50,14 @@
                         android:max="100"
                         android:progress="10" />
 
+                    <com.jjoe64.graphview.GraphView
+                        android:id="@+id/graphBar"
+                        android:layout_width="match_parent"
+                        android:layout_height="100dp"
+                        android:layout_gravity="center"
+                        android:layout_marginLeft="20dp"
+                        android:layout_marginRight="20dp" />
+
                     <TextView
                         android:id="@+id/textView"
                         android:layout_width="match_parent"

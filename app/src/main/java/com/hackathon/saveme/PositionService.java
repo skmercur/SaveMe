@@ -92,9 +92,9 @@ byte[] bytes = new byte[length];
     FileInputStream in = new FileInputStream(file);
     try {
         in.read(bytes);
-        in.close();
-    }finally {
 
+    }finally {
+        in.close();
     }
     String content = new String(bytes);
     oldDist = Double.parseDouble(content);
