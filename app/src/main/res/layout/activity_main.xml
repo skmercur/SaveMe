@@ -4,12 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/darker_gray"
+    android:background="@drawable/back"
     tools:context=".MainActivity">
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="588dp"
+        android:background="@drawable/back">
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/floatingActionButton"
@@ -18,6 +19,7 @@
             android:layout_gravity="bottom|right"
             android:clickable="true"
             android:longClickable="true"
+            android:tint="@color/colorWhite"
             app:backgroundTint="@color/colorAccent"
             app:srcCompat="?android:attr/alertDialogIcon"
             tools:layout_editor_absoluteX="344dp"
@@ -90,6 +92,7 @@
                         android:visibility="gone">
 
                     </com.cunoraz.gifview.library.GifView>
+
                     <TextView
                         android:id="@+id/textView2"
                         android:layout_width="match_parent"
