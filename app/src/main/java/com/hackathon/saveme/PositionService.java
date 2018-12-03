@@ -1,6 +1,9 @@
 package com.hackathon.saveme;
 
 import android.Manifest;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -9,13 +12,16 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.media.app.NotificationCompat;
 import android.util.Log;
 
 import java.io.BufferedInputStream;
@@ -46,6 +52,7 @@ public class PositionService extends Service {
     double lon,lat;
     double olon,olat;
     double oldDist;
+    double waterDistance = 0;
     public PositionService() {
     }
 
@@ -80,6 +87,7 @@ private void distanceCalc() throws IOException {
         double delLambda = Math.toRadians(lon- olon);
         double a = Math.sin(delTheta/2)*Math.sin(delTheta/2)+Math.cos(theta1)*Math.cos(theta2)*Math.sin(delLambda/2)*Math.sin(delLambda/2);
         double c = 2*Math.atan2(Math.sqrt(a),Math.sqrt((1-a)));
+    waterDistance += Math.abs(c);
     Calendar ca = Calendar.getInstance();
     ca.add(Calendar.DATE, 0);
     SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
@@ -148,11 +156,28 @@ byte[] bytes = new byte[length];
 
 
         locationListener = new LocationListener() {
+
             @Override
             public void onLocationChanged(Location location) {
                 /*  if(((location.getSpeed()*3600/1000) > 0) && ((location.getSpeed()*3600/1000)<40)) {*/
 
 //            }
+
+
+                if (waterDistance > 1) {
+                    NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                    Notification n = null;
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
+                        n = new Notification.Builder(getApplicationContext()).setContentTitle("Time to drink water")
+                                .setContentText("You walked " + Double.toString(waterDistance) + " meters its time to drink")
+                                .setSmallIcon(R.drawable.almonkidh)
+                                .setAutoCancel(true)
+                                .build();
+                    }
+                    notificationManager.notify(0, n);
+                    waterDistance = 0;
+                }
+
                 lon = location.getLongitude();
                 lat = location.getLatitude();
                 if ((olon == 0) || (olat == 0)) {
