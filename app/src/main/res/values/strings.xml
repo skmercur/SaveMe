@@ -3,4 +3,8 @@
     <string name="title_activity_map">Map</string>
     <string name="facebook_app_id">308308696561021</string>
     <string name="fb_login_protocol_scheme">fb308308696561021</string>
+    <string name="options">Options</string>
+    <string name="home">Home</string>
+    <string name="profil">Profil</string>
+    <string name="umergency">Umergency</string>
 </resources>
