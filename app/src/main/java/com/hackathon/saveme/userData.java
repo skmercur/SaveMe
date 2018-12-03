@@ -49,6 +49,7 @@ public class userData extends AppCompatActivity implements AdapterView.OnItemSel
     LoginButton loginButton;
     CallbackManager callbackManager;
     LoginManager loginManager;
+    String desease, Allergy;
     private static final String EMAIL = "email";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,13 +57,16 @@ public class userData extends AppCompatActivity implements AdapterView.OnItemSel
         setContentView(R.layout.activity_user_data);
 
         Spinner dropdown = (Spinner) findViewById(R.id.spinner1);
-        String[] items = new String[]{"1", "2", "3"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item);
-
+        Spinner dropdown2 = (Spinner) findViewById(R.id.spinner2);
+        String[] items = new String[]{"Diabete", "Tension", "Vertige"};
+        String[] items2 = new String[]{"Pollen", "Lactose", "Strawberries"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items);
+        ArrayAdapter<String> adapter2 = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items2);
         dropdown.setAdapter(adapter);
         dropdown.setOnItemSelectedListener(this);
+        dropdown2.setAdapter(adapter2);
+        dropdown2.setOnItemSelectedListener(this);
 
-        final EditText userAge = (EditText) findViewById(R.id.editText2);
         final EditText userWeight = (EditText) findViewById(R.id.editText3);
         GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build();
         final GoogleApiClient googleApiClient = new GoogleApiClient.Builder(this).addApi(Auth.GOOGLE_SIGN_IN_API, googleSignInOptions)
@@ -72,26 +76,6 @@ public class userData extends AppCompatActivity implements AdapterView.OnItemSel
             @Override
             public void onClick(View v) {
 
-                File path = getFilesDir();
-                File file = new File(path, "userdata");
-                if (!file.exists()) {
-                    try {
-                        OutputStream outputStream = new FileOutputStream(file);
-                        OutputStreamWriter writer = new OutputStreamWriter(outputStream);
-
-                        writer.write(userAge.getText().toString() + "\n");
-                        writer.write(userWeight.getText().toString() + "\n");
-                        writer.write(filepath + "\n");
-                        writer.close();
-                        Intent main = new Intent(userData.this, MainActivity.class);
-                        startActivity(main);
-                        finish();
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
 
 
                 Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(googleApiClient);
@@ -147,7 +131,32 @@ public class userData extends AppCompatActivity implements AdapterView.OnItemSel
         if (requestCode == 235) {
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
             GoogleSignInAccount acct = result.getSignInAccount();
-            Log.d("User email", acct.getEmail());
+
+            File path = getFilesDir();
+            File file = new File(path, "userdata");
+            if (!file.exists()) {
+                try {
+                    OutputStream outputStream = new FileOutputStream(file);
+                    OutputStreamWriter writer = new OutputStreamWriter(outputStream);
+
+                    writer.write(acct.getGivenName() + acct.getFamilyName() + "\n");
+                    writer.write(acct.getEmail() + "\n");
+                    writer.write(Allergy + "\n");
+                    writer.write(acct.getPhotoUrl().toString() + "\n");
+                    writer.close();
+                    Intent main = new Intent(userData.this, MainActivity.class);
+                    startActivity(main);
+                    finish();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                Intent main = new Intent(userData.this, MainActivity.class);
+                startActivity(main);
+                finish();
+            }
 
         }
 
@@ -183,7 +192,7 @@ public class userData extends AppCompatActivity implements AdapterView.OnItemSel
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
+        Allergy = parent.getItemAtPosition(position).toString();
     }
 
     @Override

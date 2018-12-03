@@ -65,7 +65,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="20dp"
                     android:layout_weight="1"
-                    android:text="Your name  : "
+                    android:text="Disease :"
                     android:textColor="#000"
                     android:textSize="18sp" />
 
@@ -95,18 +95,16 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="20dp"
                     android:layout_weight="1"
-                    android:text="Your age : "
+                    android:text="Allergies"
                     android:textColor="#000"
                     android:textSize="18sp" />
 
-                <EditText
-                    android:id="@+id/editText2"
+                <Spinner
+                    android:id="@+id/spinner2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:ems="10"
-                    android:hint="exemple 35 years old"
-                    android:inputType="numberDecimal" />
+                    android:background="@android:drawable/btn_dropdown"
+                    android:spinnerMode="dropdown" />
             </LinearLayout>
         </android.support.v7.widget.CardView>
 
