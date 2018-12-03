@@ -81,15 +81,15 @@
                     android:layout_height="match_parent"
                     android:orientation="vertical">
 
-                    <ProgressBar
-                        android:id="@+id/progressBar2"
-                        style="?android:attr/progressBarStyle"
-                        android:layout_width="wrap_content"
+                    <com.cunoraz.gifview.library.GifView
+                        android:id="@+id/gif1"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:max="100"
-                        android:progress="10" />
+                        android:layout_margin="10dp"
+                        android:visibility="gone">
 
+                    </com.cunoraz.gifview.library.GifView>
                     <TextView
                         android:id="@+id/textView2"
                         android:layout_width="match_parent"

@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.cunoraz.gifview.library.GifView;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.ValueDependentColor;
@@ -45,6 +46,10 @@ TextView distanceText;
         distanceText = (TextView)findViewById(R.id.textView);
         BpmText = (TextView) findViewById(R.id.textView2);
         graphView = (GraphView) findViewById(R.id.graphBar);
+        GifView gifView = (GifView) findViewById(R.id.gif1);
+        gifView.setVisibility(View.VISIBLE);
+        gifView.setGifResource(R.drawable.ekg);
+        gifView.play();
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
