@@ -11,8 +11,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -22,6 +25,13 @@ import com.facebook.GraphResponse;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.auth.api.signin.GoogleSignInResult;
+import com.google.android.gms.common.SignInButton;
+import com.google.android.gms.common.api.GoogleApiClient;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,7 +44,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.Arrays;
 
-public class userData extends AppCompatActivity {
+public class userData extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
     String filepath;
     LoginButton loginButton;
     CallbackManager callbackManager;
@@ -44,63 +54,31 @@ public class userData extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_data);
-        Button imagePick = (Button) findViewById(R.id.button);
-        Button saveBtn = (Button) findViewById(R.id.button2);
-        final EditText userFullname = (EditText) findViewById(R.id.editText);
+
+        Spinner dropdown = (Spinner) findViewById(R.id.spinner1);
+        String[] items = new String[]{"1", "2", "3"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item);
+
+        dropdown.setAdapter(adapter);
+        dropdown.setOnItemSelectedListener(this);
+
         final EditText userAge = (EditText) findViewById(R.id.editText2);
         final EditText userWeight = (EditText) findViewById(R.id.editText3);
-
-
-        loginButton = (LoginButton) findViewById(R.id.fbButton);
-        loginButton.setReadPermissions(Arrays.asList(EMAIL));
-        callbackManager = CallbackManager.Factory.create();
-        loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
-            @Override
-            public void onSuccess(LoginResult loginResult) {
-                GraphRequest.newMeRequest(loginResult.getAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
-                    @Override
-                    public void onCompleted(JSONObject object, GraphResponse response) {
-                        try {
-                            Log.d("User email ", object.getString("email"));
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }).executeAsync();
-
-            }
-
-            @Override
-            public void onCancel() {
-
-            }
-
-            @Override
-            public void onError(FacebookException error) {
-
-            }
-        });
-
-        imagePick.setOnClickListener(new View.OnClickListener() {
+        GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build();
+        final GoogleApiClient googleApiClient = new GoogleApiClient.Builder(this).addApi(Auth.GOOGLE_SIGN_IN_API, googleSignInOptions)
+                .build();
+        SignInButton signInButton = (SignInButton) findViewById(R.id.sign_in_btn);
+        signInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
-                photoPickerIntent.setType("image/*");
-                startActivityForResult(photoPickerIntent, 1);
 
-
-            }
-        });
-        saveBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
                 File path = getFilesDir();
                 File file = new File(path, "userdata");
                 if (!file.exists()) {
                     try {
                         OutputStream outputStream = new FileOutputStream(file);
                         OutputStreamWriter writer = new OutputStreamWriter(outputStream);
-                        writer.write(userFullname.getText().toString() + "\n");
+
                         writer.write(userAge.getText().toString() + "\n");
                         writer.write(userWeight.getText().toString() + "\n");
                         writer.write(filepath + "\n");
@@ -114,13 +92,68 @@ public class userData extends AppCompatActivity {
                         e.printStackTrace();
                     }
                 }
+
+
+                Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(googleApiClient);
+                startActivityForResult(signInIntent, 235);
             }
         });
+
+        loginButton = (LoginButton) findViewById(R.id.fbButton);
+        loginButton.setReadPermissions("email", "public_profile");
+        callbackManager = CallbackManager.Factory.create();
+        loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                String userid = loginResult.getAccessToken().getUserId();
+                GraphRequest graphRequest = GraphRequest.newMeRequest(loginResult.getAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
+                    @Override
+                    public void onCompleted(JSONObject object, GraphResponse response) {
+                        try {
+                            displayUserInfo(object);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+
+                Bundle parameters = new Bundle();
+                parameters.putString("fields", "first_name, last_name, email, id");
+                graphRequest.setParameters(parameters);
+                graphRequest.executeAsync();
+            }
+
+            @Override
+            public void onCancel() {
+
+            }
+
+            @Override
+            public void onError(FacebookException error) {
+
+            }
+        });
+
+
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
+
+        //google sign-In
+
+        if (requestCode == 235) {
+            GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+            GoogleSignInAccount acct = result.getSignInAccount();
+            Log.d("User email", acct.getEmail());
+
+        }
+
+        //end
+
+
         callbackManager.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
             if (requestCode == Activity.RESULT_OK) {
@@ -137,6 +170,24 @@ public class userData extends AppCompatActivity {
         cursor.moveToFirst();
         int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
         return cursor.getString(idx);
+
+    }
+
+    public void displayUserInfo(JSONObject object) throws JSONException {
+        String first, last, email;
+        first = object.getString("first_name");
+        email = object.getString("email");
+        Log.d("user", email);
+
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
 
     }
 }
