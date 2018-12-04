@@ -1,15 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
     <item android:id="@android:id/background">
+
         <shape
             android:innerRadiusRatio="3"
             android:shape="ring"
             android:thickness="10dp"
             android:useLevel="false">
+
             <solid android:color="#E7E8E9">
 
             </solid>
+
         </shape>
+
     </item>
     <item android:id="@android:id/progress">
         <clip
@@ -23,6 +28,7 @@
                 <solid android:color="#0077BE">
 
                 </solid>
+
             </shape>
         </clip>
     </item>
