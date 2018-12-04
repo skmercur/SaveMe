@@ -24,6 +24,7 @@ double ax,ay,az,a;
 double max = 0;
 double previousAcceleration = 0;
     AlertDialog.Builder builder;
+    AlertDialog mydialog;
 
 
     @Override
@@ -43,29 +44,33 @@ double previousAcceleration = 0;
     public void onSensorChanged(SensorEvent event) {
         az = event.values[2];
         ax = event.values[0];
-        az = event.values[1];
-        a = Math.sqrt(Math.pow(ax,2)+Math.pow(ay,2)+Math.pow(az,2));
+        ay = event.values[1];
+        a = Math.sqrt(Math.pow(ax,2)+Math.pow(az,2));
 
         max = (a > max) ? a:max;
         vzSpeedText.setText("Your acceleraton is : " + Double.toString(a) + "and the max  is : "+Double.toString(max));
-        if(Math.abs(previousAcceleration-a) > 10){
+        if(previousAcceleration-a < 10){
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
             }else {
                 v.vibrate(500);
             }
-builder.setTitle("Fall Detector").setMessage("Are you OK ?").setPositiveButton("Yes ", new DialogInterface.OnClickListener() {
-    @Override
-    public void onClick(DialogInterface dialog, int which) {
-        dialog.cancel();
-    }
-}).setNegativeButton("No", new DialogInterface.OnClickListener() {
-    @Override
-    public void onClick(DialogInterface dialog, int which) {
-        dialog.cancel();
-    }
-}).show();
-
+            if(!mydialog.isShowing()) {
+                builder.setTitle("Fall Detector").setMessage("Are you OK ?").setPositiveButton("Yes ", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                }).setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+                builder.setCancelable(false);
+                mydialog = builder.create();
+                mydialog.show();
+            }
         }
         previousAcceleration = a;
 
