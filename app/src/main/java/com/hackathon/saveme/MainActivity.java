@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.cunoraz.gifview.library.GifView;
@@ -35,7 +36,11 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 TextView distanceText;
     TextView BpmText;
-
+    TextView waterText;
+    TextView walkingTargetText;
+    ProgressBar waterProgress;
+    ProgressBar walkingProgress;
+    String message, message1, message2, message3, message4;
     List<Double> gg = new ArrayList<Double>();
     GraphView graphView;
 
@@ -45,7 +50,11 @@ TextView distanceText;
         setContentView(R.layout.activity_main);
         distanceText = (TextView)findViewById(R.id.textView);
         BpmText = (TextView) findViewById(R.id.textView2);
+        waterText = (TextView) findViewById(R.id.textTargetWater);
+        walkingTargetText = (TextView) findViewById(R.id.textTargetWalking);
         graphView = (GraphView) findViewById(R.id.graphBar);
+        waterProgress = (ProgressBar) findViewById(R.id.progressBar2);
+        walkingProgress = (ProgressBar) findViewById(R.id.progressBar3);
         GifView gifView = (GifView) findViewById(R.id.gif1);
         gifView.setVisibility(View.VISIBLE);
         gifView.setGifResource(R.drawable.ekg);
@@ -141,9 +150,46 @@ TextView distanceText;
     private BroadcastReceiver DistanceReciver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-      String message = intent.getStringExtra("distance");
+            message = intent.getStringExtra("distance");
+            message2 = intent.getStringExtra("water");
+            message4 = intent.getStringExtra("stime");
+            message3 = intent.getStringExtra("speed");
             distanceText.setText("You walked :" + Double.toString(Math.round(Double.parseDouble(message))) + " m");
-            Log.d("Distance",message);
+            double timeToDrink = (Double.parseDouble(message2) / Double.parseDouble(message3)) / 60;
+            if (Double.parseDouble(message3) > 0) {
+                waterText.setText("You will need to drink water in : " + Double.toString(Math.round(timeToDrink)) + " minutes");
+            } else {
+                waterText.setText("Remember to stay hydrated");
+            }
+            if (Double.parseDouble(message) - 2500 < 0) {
+                walkingTargetText.setText("There are " + Double.toString(Math.round(Math.abs(Double.parseDouble(message) - 2500) / 1000)) + " Km left");
+            } else {
+                walkingTargetText.setText("You passed the goal by " + Double.toString(Math.round(Math.abs(Double.parseDouble(message) - 2500) / 1000)) + " Km");
+
+            }
+
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    if ((long) Double.parseDouble(message3) - Long.parseLong(message4) > 0) {
+                        int progress = (int) ((long) Double.parseDouble(message3) / Long.parseLong(message4)) * 100;
+                        waterProgress.setProgress(progress);
+                    } else {
+                        waterProgress.setProgress(50);
+                    }
+                }
+            });
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    if (Double.parseDouble(message) - 2500 < 0) {
+                        int progress = (int) (Double.parseDouble(message) / 2500) * 100;
+                        walkingProgress.setProgress(progress);
+                    } else {
+                        walkingProgress.setProgress(100);
+                    }
+                }
+            });
         }
     };
 }

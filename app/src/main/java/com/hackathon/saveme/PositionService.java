@@ -42,6 +42,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -53,6 +54,7 @@ public class PositionService extends Service {
     double olon,olat;
     double oldDist;
     double waterDistance = 0;
+    double speed = 0;
     public PositionService() {
     }
 
@@ -94,6 +96,10 @@ private void distanceCalc() throws IOException {
     String filename = df.format(ca.getTime());
     Intent intent = new Intent("DistanceWalked");
     intent.putExtra("distance", Double.toString(Math.abs(r * c) + oldDist));
+    intent.putExtra("water", Double.toString(waterDistance));
+    intent.putExtra("speed", Double.toString(speed));
+    Date d1 = new Date();
+    intent.putExtra("stime", Long.toString(d1.getTime()));
     LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     File path = this.getApplicationContext().getFilesDir();
     File file = new File(path,filename);
@@ -163,8 +169,9 @@ byte[] bytes = new byte[length];
 
 //            }
 
+                speed = location.getSpeed();
 
-                if (waterDistance > 1) {
+                if (waterDistance > 2500) {
                     NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                     Notification n = null;
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
