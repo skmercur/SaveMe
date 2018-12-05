@@ -1,6 +1,7 @@
 package com.hackathon.saveme;
 
 import android.app.Activity;
+import android.app.Person;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -139,7 +140,7 @@ public class userData extends AppCompatActivity implements AdapterView.OnItemSel
                     OutputStream outputStream = new FileOutputStream(file);
                     OutputStreamWriter writer = new OutputStreamWriter(outputStream);
 
-                    writer.write(acct.getGivenName() + acct.getFamilyName() + "\n");
+                    writer.write(acct.getGivenName() + " " + acct.getFamilyName() + "\n");
                     writer.write(acct.getEmail() + "\n");
                     writer.write(Allergy + "\n");
                     writer.write(acct.getPhotoUrl().toString() + "\n");
