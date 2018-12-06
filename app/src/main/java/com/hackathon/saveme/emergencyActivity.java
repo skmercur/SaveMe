@@ -4,33 +4,27 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.graphics.Camera;
-import android.os.Build;
-import android.os.Handler;
-import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
-import android.widget.Toast;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.lang.reflect.Parameter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLEncoder;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.net.URLConnection;
 
 public class emergencyActivity extends AppCompatActivity {
     android.hardware.Camera cam;
@@ -45,7 +39,60 @@ public class emergencyActivity extends AppCompatActivity {
         setContentView(R.layout.activity_emergency);
         v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
+
+
         new Thread(new Runnable() {
+            @Override
+            public void run() {
+                BufferedOutputStream os = null;
+                InputStream is = null;
+                try {
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("lat", "3333");
+                    jsonObject.put("lon", "8888");
+                    byte[] enco = jsonObject.toString().getBytes("UTF-8");
+                    String encoded = Base64.encodeToString(enco,Base64.DEFAULT);
+                    URLConnection url = new URL("http://192.168.1.61/emer?json="+encoded).openConnection();
+                    url.setRequestProperty("Accept-Charset","utf-8");
+                    is = new BufferedInputStream(url.getInputStream());
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                    StringBuilder result = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        result.append(line);
+
+                    }
+
+                    Log.d("Results : ",result.toString());
+
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } finally {
+
+                    try {
+                        if(os != null){
+                            os.close();
+
+                        }
+                        if(is != null){
+                            is.close();
+                        }
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+        }).start();
+
+
+      /*  new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -79,7 +126,7 @@ public class emergencyActivity extends AppCompatActivity {
                 }
             }
         }).start();
-
+*/
         LocalBroadcastManager.getInstance(this).registerReceiver(positionReciver, new IntentFilter("position"));
 /*
 

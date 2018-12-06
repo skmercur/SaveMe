@@ -196,48 +196,7 @@ byte[] bytes = new byte[length];
                 }
 
                 //Here we will send the Location to the server
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        BufferedOutputStream os = null;
-                        InputStream is = null;
-                        try {
-                            URLConnection url = new URL("http://192.168.1.61/emer?lat="+Double.toString(lat)+"&lon="+Double.toString(lon)).openConnection();
-url.setRequestProperty("Accept-Charset","utf-8");
-is = new BufferedInputStream(url.getInputStream());
-                            BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-                            StringBuilder result = new StringBuilder();
-                            String line;
-                            while ((line = reader.readLine()) != null) {
-                                result.append(line);
 
-                            }
-
-                            Log.d("Results : ",result.toString());
-
-                        } catch (MalformedURLException e) {
-                            e.printStackTrace();
-
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        } finally {
-
-                            try {
-                                if(os != null){
-                                os.close();
-
-                                }
-                                if(is != null){
-                                    is.close();
-                                }
-
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-
-                        }
-                    }
-                }).start();
 
 
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
