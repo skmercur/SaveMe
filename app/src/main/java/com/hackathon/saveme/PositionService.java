@@ -170,7 +170,10 @@ byte[] bytes = new byte[length];
 //            }
 
                 speed = location.getSpeed();
-
+                Intent intent = new Intent("position");
+                intent.putExtra("lon", Double.toString(location.getLongitude()));
+                intent.putExtra("lat", Double.toString(location.getLatitude()));
+                LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
                 if (waterDistance > 2500) {
                     NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                     Notification n = null;

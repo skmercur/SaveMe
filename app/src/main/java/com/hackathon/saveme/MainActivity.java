@@ -55,6 +55,8 @@ TextView distanceText;
 
     UserFragment userFragment;
     mainFragment mainFragment;
+    settingFragments settingFragments;
+    emergencyFragment emergencyFragment;
 
     private void setFragment(Fragment fragment) {
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
@@ -71,6 +73,8 @@ TextView distanceText;
         frameLayout = (FrameLayout) findViewById(R.id.frame_container);
         userFragment = new UserFragment();
         mainFragment = new mainFragment();
+        settingFragments = new settingFragments();
+        emergencyFragment = new emergencyFragment();
         setFragment(mainFragment);
         navigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -82,6 +86,14 @@ TextView distanceText;
                     }
                     case R.id.navigation_home: {
                         setFragment(mainFragment);
+                        break;
+                    }
+                    case R.id.navigation_options: {
+                        setFragment(settingFragments);
+                        break;
+                    }
+                    case R.id.navigation_urgans: {
+                        setFragment(emergencyFragment);
                         break;
                     }
 
