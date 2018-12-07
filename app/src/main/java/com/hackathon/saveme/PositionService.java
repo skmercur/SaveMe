@@ -1,6 +1,7 @@
 package com.hackathon.saveme;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -18,11 +19,26 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.app.NotificationCompat;
+import android.util.Base64;
 import android.util.Log;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -37,24 +53,29 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.concurrent.Executor;
 
 public class PositionService extends Service {
     LocationManager locationManager;
     LocationListener locationListener;
-
-    double lon,lat;
-    double olon,olat;
+    FusedLocationProviderClient fusedLocationProviderClient;
+    private  String android_id;
+    double lon, lat;
+    double olon, olat;
     double oldDist;
     double waterDistance = 0;
     double speed = 0;
+
     public PositionService() {
     }
 
@@ -80,66 +101,68 @@ public class PositionService extends Service {
             }
         }.start();
     }
-private void distanceCalc() throws IOException {
+
+    private void distanceCalc() throws IOException {
 
         double r = 6371e3;
         double theta1 = Math.toRadians(olat);
         double theta2 = Math.toRadians(lat);
-        double delTheta = Math.toRadians(lat-olat);
-        double delLambda = Math.toRadians(lon- olon);
-        double a = Math.sin(delTheta/2)*Math.sin(delTheta/2)+Math.cos(theta1)*Math.cos(theta2)*Math.sin(delLambda/2)*Math.sin(delLambda/2);
-        double c = 2*Math.atan2(Math.sqrt(a),Math.sqrt((1-a)));
-    waterDistance += Math.abs(c);
-    Calendar ca = Calendar.getInstance();
-    ca.add(Calendar.DATE, 0);
-    SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
-    String filename = df.format(ca.getTime());
-    Intent intent = new Intent("DistanceWalked");
-    intent.putExtra("distance", Double.toString(Math.abs(r * c) + oldDist));
-    intent.putExtra("water", Double.toString(waterDistance));
-    intent.putExtra("speed", Double.toString(speed));
-    Date d1 = new Date();
-    intent.putExtra("stime", Long.toString(d1.getTime()));
-    LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-    File path = this.getApplicationContext().getFilesDir();
-    File file = new File(path,filename);
+        double delTheta = Math.toRadians(lat - olat);
+        double delLambda = Math.toRadians(lon - olon);
+        double a = Math.sin(delTheta / 2) * Math.sin(delTheta / 2) + Math.cos(theta1) * Math.cos(theta2) * Math.sin(delLambda / 2) * Math.sin(delLambda / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt((1 - a)));
+        waterDistance += Math.abs(c);
+        Calendar ca = Calendar.getInstance();
+        ca.add(Calendar.DATE, 0);
+        SimpleDateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+        String filename = df.format(ca.getTime());
+        Intent intent = new Intent("DistanceWalked");
+        intent.putExtra("distance", Double.toString(Math.abs(r * c) + oldDist));
+        intent.putExtra("water", Double.toString(waterDistance));
+        intent.putExtra("speed", Double.toString(speed));
+        Date d1 = new Date();
+        intent.putExtra("stime", Long.toString(d1.getTime()));
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        File path = this.getApplicationContext().getFilesDir();
+        File file = new File(path, filename);
 
-int length = (int)file.length();
-byte[] bytes = new byte[length];
-    if (file.exists()) {
-        FileInputStream in = new FileInputStream(file);
+        int length = (int) file.length();
+        byte[] bytes = new byte[length];
+        if (file.exists()) {
+            FileInputStream in = new FileInputStream(file);
 
-        in.read(bytes);
-        in.close();
-        String content = new String(bytes);
-        oldDist = Double.parseDouble(content);
-    } else {
-        oldDist = 0;
+            in.read(bytes);
+            in.close();
+            String content = new String(bytes);
+            oldDist = Double.parseDouble(content);
+        } else {
+            oldDist = 0;
+        }
+
+        try {
+            OutputStream os = new FileOutputStream(file);
+            OutputStreamWriter writer = new OutputStreamWriter(os);
+
+
+            writer.write(Double.toString(Math.abs(r * c) + oldDist));
+            writer.close();
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Log.d("Del Lat", Double.toString(delTheta));
+        Log.d("Del lon", Double.toString(delLambda));
+        Log.d("File Status", "File saved Successfully");
     }
-
-    try {
-        OutputStream os = new FileOutputStream(file);
-        OutputStreamWriter writer = new OutputStreamWriter(os);
-
-
-        writer.write(Double.toString(Math.abs(r * c) + oldDist));
-        writer.close();
-
-    } catch (FileNotFoundException e) {
-        e.printStackTrace();
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
-    Log.d("Del Lat", Double.toString(delTheta));
-    Log.d("Del lon", Double.toString(delLambda));
-    Log.d("File Status", "File saved Successfully");
-}
 
 
     @Override
     public void onCreate() {
         super.onCreate();
 
+        android_id = Settings.Secure.getString(getApplicationContext().getContentResolver(),Settings.Secure.ANDROID_ID);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
         criteria.setAccuracy(Criteria.ACCURACY_FINE);
@@ -165,9 +188,6 @@ byte[] bytes = new byte[length];
 
             @Override
             public void onLocationChanged(Location location) {
-                /*  if(((location.getSpeed()*3600/1000) > 0) && ((location.getSpeed()*3600/1000)<40)) {*/
-
-//            }
 
                 speed = location.getSpeed();
                 Intent intent = new Intent("position");
@@ -197,7 +217,47 @@ byte[] bytes = new byte[length];
 
                 //Here we will send the Location to the server
 
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
 
+                        JSONObject jsonObject = new JSONObject();
+                        try {
+
+                            jsonObject.put("lat", lat);
+                            jsonObject.put("lon", lon);
+                            jsonObject.put("id", android_id);
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        String dataF = jsonObject.toString();
+
+                        byte[] encodedJson = Base64.encode(dataF.getBytes(), Base64.DEFAULT);
+                        String url = null;
+                        try {
+                            url = "http://192.168.1.61/userposi?json=" + URLEncoder.encode(dataF, "UTF-8");
+                        } catch (UnsupportedEncodingException e) {
+                            e.printStackTrace();
+                        }
+                        Log.d("sending to ", url);
+                        StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                Log.d("Response : ", response);
+                            }
+                        }, new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                Log.d("Error", error.getMessage());
+                            }
+                        });
+
+                        queue.add(stringRequest);
+
+                    }
+                 }).start();
 
                 new Handler(Looper.getMainLooper()).post(new Runnable() {
                     @Override
@@ -207,7 +267,11 @@ byte[] bytes = new byte[length];
                     }
                 });
                 try {
-                    distanceCalc();
+                    if(((location.getSpeed()*3600/1000) > 0) && ((location.getSpeed()*3600/1000)<6)) {
+                        distanceCalc();
+                    }
+
+
 
                 } catch (IOException e) {
                     e.printStackTrace();

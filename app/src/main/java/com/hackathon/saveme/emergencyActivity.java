@@ -8,11 +8,13 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -50,7 +52,10 @@ import java.util.TimerTask;
 public class emergencyActivity extends AppCompatActivity {
     android.hardware.Camera cam;
     android.hardware.Camera.Parameters p;
+    String message,message1;
+    TextView statusText;
     ArrayList<String> userDataCollected = new ArrayList<String>();
+    private  String android_id;
     int k = 0;
     private Vibrator v;
 
@@ -82,7 +87,8 @@ public class emergencyActivity extends AppCompatActivity {
         readUserData();
         setContentView(R.layout.activity_emergency);
         v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-
+statusText = (TextView)findViewById(R.id.textView18);
+        android_id = Settings.Secure.getString(getApplicationContext().getContentResolver(),Settings.Secure.ANDROID_ID);
 
         new Thread(new Runnable() {
             @Override
@@ -91,10 +97,9 @@ public class emergencyActivity extends AppCompatActivity {
 
                 JSONObject jsonObject = new JSONObject();
                 try {
-                    jsonObject.put("name", userDataCollected.get(0));
-                    jsonObject.put("email", userDataCollected.get(1));
-                    jsonObject.put("allergy", userDataCollected.get(2));
-                    jsonObject.put("image", new String(Base64.encode(userDataCollected.get(3).getBytes(), Base64.DEFAULT)));
+
+                    jsonObject.put("status", "1");
+                    jsonObject.put("id", android_id);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -103,7 +108,7 @@ public class emergencyActivity extends AppCompatActivity {
                 byte[] encodedJson = Base64.encode(dataF.getBytes(), Base64.DEFAULT);
                 String url = null;
                 try {
-                    url = "http://192.168.1.61/emer?json=" + URLEncoder.encode(dataF, "UTF-8");
+                    url = "http://192.168.1.61/help?json=" + URLEncoder.encode(dataF, "UTF-8");
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }
@@ -112,6 +117,13 @@ public class emergencyActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(String response) {
                         Log.d("Response : ", response);
+                        try {
+                            JSONObject obj = new JSONObject(response);
+                            statusText.setText(obj.getString("status"));
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }, new Response.ErrorListener() {
                     @Override
@@ -120,95 +132,11 @@ public class emergencyActivity extends AppCompatActivity {
                     }
                 });
 
-             /*  OutputStreamWriter os = null;
-                InputStreamReader is = null;
-                try {
-                    String message1 = "3.4888888444";
-                    String message = "44.5555555;55";
-                 String name = "sofiane";
-                    Log.d("hzheh",name);
-                    String parameters = "lat="+message1+"&lon="+message;
-                    URL url = new URL("http://192.168.1.61/emer");
-                    HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-
-                    connection.setRequestMethod("GET");
-
-os = new OutputStreamWriter(connection.getOutputStream());
-os.write(parameters);
-os.flush();
-os.close();
-connection.connect();
-if(connection.getResponseCode() >=200 && connection.getResponseCode() < 400) {
-    is = new InputStreamReader(connection.getInputStream());
-}else{
-    is = new InputStreamReader(connection.getErrorStream());
-}
-                    Log.d("response",Integer.toString(connection.getResponseCode()));
-//TODO fix send name
-
-
-                    BufferedReader reader = new BufferedReader(is);
-                    StringBuilder result = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        result.append(line);
-
-                    }
-
-                    Log.d("Results : ",result.toString());
-is.close();
-reader.close();
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (EOFException r){
-                    r.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-
-
-                }*/
                 queue.add(stringRequest);
 
             }
 
         }).start();
-
-      /*  new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-
-                    URL url = new URL("http://192.168.1.61:8080/SaveMeWeb/dataReciver/index.php");
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.setDoInput(true);
-                    connection.setDoInput(false);
-                    connection.setRequestMethod("POST");
-                    connection.setRequestProperty("Content-Type", "application/json;charset=utf-8");
-                    connection.setRequestProperty("X-Requested-With", "XMLHttpRequest");
-                    connection.connect();
-
-
-                    JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("lat", "3333");
-                    jsonObject.put("lon", "8888");
-                    OutputStream outputStream = new BufferedOutputStream(connection.getOutputStream());
-                    outputStream.write(jsonObject.toString().getBytes());
-                    outputStream.flush();
-
-
-                    outputStream.close();
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-*/
-        LocalBroadcastManager.getInstance(this).registerReceiver(positionReciver, new IntentFilter("position"));
 
         /*if(getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)){
             Timer t = new Timer();
@@ -242,43 +170,4 @@ reader.close();
         }*/
     }
 
-    private BroadcastReceiver positionReciver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            final String message = intent.getStringExtra("lon");
-            final String message1 = intent.getStringExtra("lat");
-            Log.d("Lat", message);
-            Log.d("lon", message1);
-/*
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    BufferedOutputStream os = null;
-                    InputStream is = null;
-                    try {
-                        URLConnection url = new URL("http://192.168.43.215:8080/emer?lat="+message1+"&lon="+message).openConnection();
-                        Log.d("State :","Starting");
-
-
-                        url.setRequestProperty("Accept-Charset","utf-8");
-                        is = new BufferedInputStream(url.getInputStream());
-                        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-                        StringBuilder result = new StringBuilder();
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            result.append(line);
-
-                        }
-
-                        Log.d("Results : ",result.toString());
-
-                    } catch (MalformedURLException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();*/
-        }
-    };
 }

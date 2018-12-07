@@ -22,6 +22,7 @@ import com.cunoraz.gifview.library.GifView;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
 import com.jjoe64.graphview.ValueDependentColor;
+import com.jjoe64.graphview.helper.StaticLabelsFormatter;
 import com.jjoe64.graphview.series.BarGraphSeries;
 import com.jjoe64.graphview.series.DataPoint;
 
@@ -31,8 +32,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -45,11 +48,12 @@ public class mainFragment extends Fragment {
     TextView waterText;
     TextView walkingTargetText;
     ProgressBar waterProgress;
+    String [] daysF;
     ProgressBar walkingProgress;
     String message, message1, message2, message3, message4;
     List<Double> gg = new ArrayList<Double>();
     GraphView graphView;
-
+ArrayList<String> days = new ArrayList<String>();
     public mainFragment() {
         // Required empty public constructor
     }
@@ -102,8 +106,12 @@ public class mainFragment extends Fragment {
             }
         });
 
+        StaticLabelsFormatter staticLables = new StaticLabelsFormatter(graphView);
+
+        staticLables.setHorizontalLabels(new String[]{"Sun","Mon","Tue","Wed","The","Fri","Sat"});
 
         graphView.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.NONE);
+        graphView.getGridLabelRenderer().setLabelFormatter(staticLables);
         graphView.getViewport().setXAxisBoundsManual(true);
         graphView.getViewport().setMinX(0);
         graphView.getViewport().setMaxX(6);
@@ -122,7 +130,12 @@ public class mainFragment extends Fragment {
             String filename = df.format(ca.getTime());
             File path = context.getFilesDir();
             File file = new File(path, filename);
+days.add(ca.getDisplayName(Calendar.DAY_OF_WEEK,Calendar.LONG,Locale.getDefault()).substring(0,3));
+            Object[] obj = days.toArray();
+            daysF = Arrays.copyOf(obj,obj.length,String[].class);
 
+            daysF = days.toArray(daysF);
+            Log.d("Day ",daysF[0]);
             if (file.exists()) {
                 int length = (int) file.length();
                 byte[] bytes = new byte[length];

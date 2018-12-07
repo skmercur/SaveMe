@@ -2,14 +2,20 @@ package com.hackathon.saveme;
 
 import android.app.Activity;
 import android.app.Person;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.FontsContract;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -18,6 +24,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
@@ -43,6 +55,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Arrays;
 
 public class userData extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
@@ -50,13 +64,16 @@ public class userData extends AppCompatActivity implements AdapterView.OnItemSel
     LoginButton loginButton;
     CallbackManager callbackManager;
     LoginManager loginManager;
+    String message,message1;
     String desease, Allergy;
+    private String name,email,img;
+    private  String android_id;
     private static final String EMAIL = "email";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_data);
-
+android_id = Settings.Secure.getString(getApplicationContext().getContentResolver(),Settings.Secure.ANDROID_ID);
         Spinner dropdown = (Spinner) findViewById(R.id.spinner1);
         Spinner dropdown2 = (Spinner) findViewById(R.id.spinner2);
         String[] items = new String[]{"Diabete", "Tension", "Vertige"};
@@ -120,6 +137,8 @@ public class userData extends AppCompatActivity implements AdapterView.OnItemSel
         });
 
 
+        LocalBroadcastManager.getInstance(this).registerReceiver(positionReciver, new IntentFilter("position"));
+
     }
 
     @Override
@@ -139,12 +158,59 @@ public class userData extends AppCompatActivity implements AdapterView.OnItemSel
                 try {
                     OutputStream outputStream = new FileOutputStream(file);
                     OutputStreamWriter writer = new OutputStreamWriter(outputStream);
-
+name = acct.getGivenName() + " " + acct.getFamilyName();
+email = acct.getEmail();
+img = acct.getPhotoUrl().toString();
                     writer.write(acct.getGivenName() + " " + acct.getFamilyName() + "\n");
                     writer.write(acct.getEmail() + "\n");
                     writer.write(Allergy + "\n");
                     writer.write(acct.getPhotoUrl().toString() + "\n");
                     writer.close();
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
+
+                            JSONObject jsonObject = new JSONObject();
+                            try {
+                                jsonObject.put("name", name);
+                                jsonObject.put("email", email);
+                                jsonObject.put("allergy", Allergy);
+                                jsonObject.put("lat", "0");
+                                jsonObject.put("lon","0");
+                                jsonObject.put("id",android_id);
+                                jsonObject.put("image", new String(Base64.encode(img.getBytes(), Base64.DEFAULT)));
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                            String dataF = jsonObject.toString();
+
+                            byte[] encodedJson = Base64.encode(dataF.getBytes(), Base64.DEFAULT);
+                            String url = null;
+                            try {
+                                url = "http://192.168.1.61/newuser?json=" + URLEncoder.encode(dataF, "UTF-8");
+                            } catch (UnsupportedEncodingException e) {
+                                e.printStackTrace();
+                            }
+                            Log.d("sending to ", url);
+                            StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+                                @Override
+                                public void onResponse(String response) {
+                                    Log.d("Response : ", response);
+                                }
+                            }, new Response.ErrorListener() {
+                                @Override
+                                public void onErrorResponse(VolleyError error) {
+                                    Log.d("Error", error.getMessage());
+                                }
+                            });
+
+                            queue.add(stringRequest);
+
+                        }
+
+                    }).start();
+
                     Intent main = new Intent(userData.this, MainActivity.class);
                     startActivity(main);
                     finish();
@@ -200,4 +266,17 @@ public class userData extends AppCompatActivity implements AdapterView.OnItemSel
     public void onNothingSelected(AdapterView<?> parent) {
 
     }
+
+    private BroadcastReceiver positionReciver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            message = intent.getStringExtra("lon");
+            message1 = intent.getStringExtra("lat");
+            Log.d("Lat", message);
+            Log.d("lon", message1);
+
+
+
+        }
+    };
 }
